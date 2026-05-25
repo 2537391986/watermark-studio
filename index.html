@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Watermark Studio v3.0.0</title>
+<title>Watermark Studio v3.1.0</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -39,12 +39,12 @@
   --glass-bg-dark:rgba(28,28,30,.55);
   --glass-blur:saturate(180%) blur(28px);
   --glass-blur-strong:saturate(200%) blur(40px);
-  --glass-edge:inset 0 0 0 .5px rgba(255,255,255,.6), inset 0 1px 0 rgba(255,255,255,.85);
-  --glass-edge-dark:inset 0 0 0 .5px rgba(255,255,255,.14), inset 0 1px 0 rgba(255,255,255,.18);
-  --glass-shadow:0 1px 1px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.08), 0 24px 48px -12px rgba(0,0,0,.12);
-  --glass-shadow-lg:0 2px 4px rgba(0,0,0,.06), 0 16px 40px rgba(0,0,0,.12), 0 32px 64px -8px rgba(0,0,0,.18);
-  --specular:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 50%);
-  --specular-dark:linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 50%);
+  --glass-edge:inset 0 0 0 .5px rgba(255,255,255,.45);
+  --glass-edge-dark:inset 0 0 0 .5px rgba(255,255,255,.12);
+  --glass-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+  --glass-shadow-lg:0 2px 6px rgba(0,0,0,.06), 0 16px 40px rgba(0,0,0,.10);
+  --specular:linear-gradient(180deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,0) 60%);
+  --specular-dark:linear-gradient(180deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 60%);
 
   --ease:cubic-bezier(.16,1,.3,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
@@ -59,13 +59,12 @@ body{
   font-family:var(--font);color:var(--text);overflow-x:hidden;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
   font-feature-settings:"ss01","cv01";
-  /* 极淡径向渐变让玻璃元素有可折射的色彩层 */
-  background-image:
+  /* 极淡径向渐变（不用 background-attachment:fixed —— iOS Safari 会让 fixed 子元素错位） */
+  background:
     radial-gradient(1200px 600px at 12% -10%, rgba(0,113,227,.10) 0%, transparent 60%),
     radial-gradient(900px 600px at 100% 110%, rgba(255,149,0,.07) 0%, transparent 55%),
-    radial-gradient(800px 500px at 80% 30%, rgba(52,199,89,.06) 0%, transparent 60%);
-  background-attachment:fixed;
-  background-color:var(--bg);
+    radial-gradient(800px 500px at 80% 30%, rgba(52,199,89,.06) 0%, transparent 60%),
+    var(--bg);
 }
 button,input,select,textarea{font-family:inherit;-webkit-font-smoothing:inherit}
 button{border:0;background:none;cursor:pointer;color:inherit}
@@ -83,6 +82,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 ::-webkit-scrollbar-track{background:transparent}
 
 @keyframes in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes inFade{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes qitemIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes toastIn{from{opacity:0;transform:translateY(-12px) scale(.96)}to{opacity:1;transform:none}}
@@ -118,38 +118,37 @@ body{padding-top:84px}
 .version{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px;letter-spacing:.01em}
 .navright{display:flex;gap:6px;align-items:center}
 
-/* ===== 按钮：液态玻璃感（顶部 specular + 底部反光） ===== */
+/* ===== 按钮：液态玻璃感（克制的内层高光） ===== */
 .btn{
   height:36px;padding:0 16px;border-radius:var(--pill);background:var(--fill);color:var(--text);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   font-size:14px;font-weight:600;white-space:nowrap;letter-spacing:-.01em;
   position:relative;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04);
+  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04);
   transition:background .2s var(--ease),transform .15s var(--ease),box-shadow .2s var(--ease);
 }
 .btn.primary{
-  background:linear-gradient(180deg,#1a8aff 0%,var(--blue) 60%,#0064cc 100%);
+  background:var(--blue);
   color:#fff;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 6px rgba(0,113,227,.32), 0 1px 2px rgba(0,113,227,.18);
-  text-shadow:0 1px 0 rgba(0,0,0,.08);
+  box-shadow:0 1px 2px rgba(0,113,227,.2), 0 4px 12px rgba(0,113,227,.22);
 }
 .btn.danger{
-  background:linear-gradient(180deg,#ff5e54 0%,var(--red) 60%,#d12f25 100%);
+  background:var(--red);
   color:#fff;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.36), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 6px rgba(255,59,48,.3), 0 1px 2px rgba(255,59,48,.18);
+  box-shadow:0 1px 2px rgba(255,59,48,.18), 0 4px 12px rgba(255,59,48,.22);
 }
-.btn.big{height:50px;padding:0 28px;font-size:17px;border-radius:var(--pill);box-shadow:inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.06)}
-.btn.primary.big{box-shadow:inset 0 1px 0 rgba(255,255,255,.42), inset 0 -1.5px 0 rgba(0,0,0,.2), 0 4px 14px rgba(0,113,227,.36), 0 1px 3px rgba(0,113,227,.2)}
+.btn.big{height:50px;padding:0 28px;font-size:17px;border-radius:var(--pill);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.06)}
+.btn.primary.big{box-shadow:0 1px 3px rgba(0,113,227,.22), 0 8px 22px rgba(0,113,227,.28)}
 .btn.sm{height:30px;padding:0 12px;font-size:13px}
 .btn.loading i{animation:spin .9s linear infinite}
 
-.badge{min-width:18px;height:18px;border-radius:var(--pill);padding:0 6px;background:rgba(0,0,0,.12);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.primary .badge,.danger .badge{background:rgba(255,255,255,.26);color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.18)}
+.badge{min-width:18px;height:18px;border-radius:var(--pill);padding:0 6px;background:rgba(0,0,0,.08);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.primary .badge,.danger .badge{background:rgba(255,255,255,.22);color:#fff}
 
 @media(hover:hover){
-  .btn:hover:not(:disabled){background:rgba(120,120,128,.2)}
-  .btn.primary:hover:not(:disabled){background:linear-gradient(180deg,#2d96ff 0%,#0078e8 60%,#006bd6 100%)}
-  .btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#ff6b62 0%,#ff453a 60%,#e3372d 100%)}
+  .btn:hover:not(:disabled){background:rgba(120,120,128,.18)}
+  .btn.primary:hover:not(:disabled){background:var(--blue-hover)}
+  .btn.danger:hover:not(:disabled){background:#ff453a}
 }
 .btn:active:not(:disabled){transform:scale(.96);transition-duration:.08s}
 
@@ -161,7 +160,7 @@ body{padding-top:84px}
 body.has-files .hero{display:none;animation:heroOut .4s var(--ease) both}
 
 /* ===== 主页面 ===== */
-.page{max-width:1500px;margin:auto;padding:18px 18px 90px;animation:in .55s var(--ease) both}
+.page{max-width:1500px;margin:auto;padding:18px 18px 90px}
 .workbench{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,24vw,420px);gap:16px}
 .leftPane{min-width:0}
 
@@ -205,25 +204,21 @@ body.has-files .hero{display:none;animation:heroOut .4s var(--ease) both}
 .stageCounter{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:var(--glass-bg-dark);-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--pill);box-shadow:var(--glass-edge-dark), 0 4px 14px rgba(0,0,0,.3);letter-spacing:-.01em}
 
 /* ===== 上传区：液态玻璃 ===== */
-.upload{margin-top:16px;min-height:130px;background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;cursor:pointer;transition:transform .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
-.upload::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
-.upload>div{position:relative;z-index:1}
+.upload{margin-top:16px;min-height:130px;background:var(--glass-bg-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;cursor:pointer;transition:transform .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
 .upload h2{font-size:22px;letter-spacing:-.024em;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text)}
 .upload h2 i{color:var(--blue);font-size:20px}
 .upload p{margin-top:6px;color:var(--muted);font-size:14px;letter-spacing:-.005em}
-.upload.drag,body.dragging .upload{transform:scale(.992);background:rgba(0,113,227,.12);box-shadow:0 0 0 2px var(--blue), 0 8px 32px rgba(0,113,227,.22)}
-.drag-hint{display:none;margin-top:14px;padding:7px 16px;border-radius:var(--pill);background:rgba(0,113,227,.16);color:var(--blue);font-size:13px;font-weight:600;box-shadow:inset 0 0 0 .5px rgba(0,113,227,.2)}
+.upload.drag,body.dragging .upload{transform:scale(.992);background:rgba(0,113,227,.10);box-shadow:0 0 0 2px var(--blue), 0 8px 32px rgba(0,113,227,.18)}
+.drag-hint{display:none;margin-top:14px;padding:7px 16px;border-radius:var(--pill);background:rgba(0,113,227,.14);color:var(--blue);font-size:13px;font-weight:600}
 .upload.drag .drag-hint,body.dragging .upload .drag-hint{display:inline-block}
 
 /* ===== 进度条：液态玻璃 ===== */
-.progress{margin-top:12px;padding:14px 18px;border-radius:var(--r-md);background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
-.progress::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
-.progress>*{position:relative;z-index:1}
+.progress{margin-top:12px;padding:14px 18px;border-radius:var(--r-md);background:var(--glass-bg-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
 .prow{display:flex;justify-content:space-between;color:var(--text2);font-size:13px;gap:12px;font-weight:500}
 #ptext{max-width:75%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #ppct{color:var(--blue);font-weight:600}
 .track{height:6px;border-radius:var(--pill);background:rgba(0,0,0,.08);margin-top:10px;overflow:hidden;box-shadow:inset 0 1px 1px rgba(0,0,0,.05)}
-.fill{height:100%;width:0;border-radius:var(--pill);background:linear-gradient(90deg,#1a8aff,var(--blue));box-shadow:0 0 8px rgba(0,113,227,.4);transition:width .35s var(--ease)}
+.fill{height:100%;width:0;border-radius:var(--pill);background:var(--blue);transition:width .35s var(--ease)}
 
 /* ===== 队列 ===== */
 .queueSec{margin-top:14px}
@@ -269,10 +264,8 @@ body.processing .qitem{animation:none!important}
 .side h2{font-size:22px;letter-spacing:-.026em;font-weight:600;padding:0 4px;color:var(--text)}
 .side>p{margin-top:4px;padding:0 4px;color:var(--muted);font-size:13px;line-height:1.4;letter-spacing:-.005em}
 
-/* 各分组卡片：液态玻璃 */
-.box,.panel{margin-top:14px;background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r-md);padding:4px 16px;box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
-.box::before,.panel::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none;z-index:0}
-.box>*,.panel>*{position:relative;z-index:1}
+/* 各分组卡片：液态玻璃，阅读优先（不加 specular） */
+.box,.panel{margin-top:14px;background:var(--glass-bg-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r-md);padding:4px 16px;box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
 
 /* 统计：iOS Settings 行 */
 .box{padding:0 16px}
@@ -329,23 +322,23 @@ input[type="date"],input[type="time"]{min-height:38px;color:var(--text)}
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:6px 0}
 .swtitle{font-weight:500;font-size:15px;letter-spacing:-.012em;color:var(--text)}
 .swsub{margin-top:2px;color:var(--muted);font-size:12px;letter-spacing:-.005em}
-/* iOS 26 玻璃 Switch 51×31 */
-.sw{width:51px;height:31px;border-radius:var(--pill);background:rgba(120,120,128,.18);position:relative;flex:0 0 auto;cursor:pointer;transition:background .25s var(--ease);box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
-.sw::after{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.8);transition:transform .28s var(--ease),width .2s var(--ease)}
-.sw.on{background:linear-gradient(180deg,#3ed26b,var(--green));box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 0 0 .5px rgba(0,0,0,.04)}
+/* iOS Switch 51×31（克制版） */
+.sw{width:51px;height:31px;border-radius:var(--pill);background:rgba(120,120,128,.18);position:relative;flex:0 0 auto;cursor:pointer;transition:background .25s var(--ease)}
+.sw::after{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.06);transition:transform .28s var(--ease),width .2s var(--ease)}
+.sw.on{background:var(--green)}
 .sw.on::after{transform:translateX(20px)}
-.sw:focus-visible{box-shadow:inset 0 1px 2px rgba(0,0,0,.06), 0 0 0 4px rgba(0,113,227,.28)}
+.sw:focus-visible{box-shadow:0 0 0 4px rgba(0,113,227,.28)}
 .sw:active::after{width:32px;border-radius:14px}
 .sw.on:active::after{transform:translateX(15px)}
 
-/* range slider iOS 26 玻璃 thumb */
+/* range slider iOS thumb */
 .range{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer;margin:6px 0}
-.range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(120,120,128,.16);box-shadow:inset 0 1px 1px rgba(0,0,0,.05)}
-.range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0%,#f4f4f7 100%);box-shadow:0 3px 8px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.9);margin-top:-10px;cursor:pointer;transition:transform .15s var(--ease)}
+.range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(120,120,128,.18)}
+.range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.16),0 0 0 .5px rgba(0,0,0,.06);margin-top:-10px;cursor:pointer;transition:transform .15s var(--ease)}
 .range::-webkit-slider-thumb:active{transform:scale(1.08)}
-.range::-moz-range-track{height:4px;border-radius:999px;background:rgba(120,120,128,.16)}
-.range::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:0;box-shadow:0 3px 8px rgba(0,0,0,.18);cursor:pointer}
-.range:focus-visible::-webkit-slider-thumb{box-shadow:0 3px 8px rgba(0,0,0,.18),0 0 0 4px rgba(0,113,227,.28),inset 0 1px 0 rgba(255,255,255,.9)}
+.range::-moz-range-track{height:4px;border-radius:999px;background:rgba(120,120,128,.18)}
+.range::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:0;box-shadow:0 2px 6px rgba(0,0,0,.16);cursor:pointer}
+.range:focus-visible::-webkit-slider-thumb{box-shadow:0 2px 6px rgba(0,0,0,.16),0 0 0 4px rgba(0,113,227,.25)}
 
 .fields{display:grid;gap:8px;margin-top:12px}
 .wmrow{display:grid;grid-template-columns:.72fr 1fr 30px;gap:6px;align-items:center}
@@ -366,8 +359,9 @@ input[type="date"],input[type="time"]{min-height:38px;color:var(--text)}
 .mobilebar .btn.danger{background:rgba(255,59,48,.12);color:var(--red);box-shadow:inset 0 0 0 1.5px rgba(255,59,48,.55), inset 0 1px 0 rgba(255,255,255,.4);text-shadow:none}
 
 /* ===== 移动端设置 Sheet ===== */
-.sheet-mask{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.08);opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.sheet-mask{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.16);-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);opacity:0;pointer-events:none;transition:opacity .35s var(--ease)}
 body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
+.sheet-handle-zone{display:none}
 .sheet-handle{display:none;width:36px;height:5px;border-radius:3px;background:rgba(60,60,67,.3);margin:8px auto 4px}
 .sheet-close{display:none;position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--fill);color:var(--muted);align-items:center;justify-content:center;font-size:13px;font-weight:600}
 .sheet-close:hover{background:rgba(120,120,128,.22);color:var(--text2)}
@@ -377,18 +371,16 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
 .toast{padding:12px 16px 12px 12px;border-radius:18px;font-size:14px;font-weight:500;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;box-shadow:var(--glass-shadow-lg), var(--glass-edge);animation:toastIn .35s var(--ease) both;pointer-events:auto;-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);background:var(--glass-bg-strong);color:var(--text);position:relative;overflow:hidden}
 .toast::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
 .toast.out{animation:toastOut .3s var(--ease) both}
-.toast i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.toast i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;position:relative;z-index:1}
 .toast span{position:relative;z-index:1}
-.toast.success i{background:linear-gradient(180deg,#3ed26b,var(--green))}
-.toast.error i{background:linear-gradient(180deg,#ff5e54,var(--red))}
-.toast.warning i{background:linear-gradient(180deg,#ffae33,var(--orange))}
-.toast.info i{background:linear-gradient(180deg,#1a8aff,var(--blue))}
+.toast.success i{background:var(--green)}
+.toast.error i{background:var(--red)}
+.toast.warning i{background:var(--orange)}
+.toast.info i{background:var(--blue)}
 
 /* ===== iOS 26 Alert（液态玻璃） ===== */
-.modal-mask{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.4);-webkit-backdrop-filter:saturate(150%) blur(2px);backdrop-filter:saturate(150%) blur(2px);display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:rgba(248,248,250,.78);-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);border-radius:22px;padding:22px 16px 0;max-width:280px;width:100%;box-shadow:var(--glass-shadow-lg), var(--glass-edge);animation:in .3s var(--ease) both;text-align:center;overflow:hidden;position:relative}
-.modal-box::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
-.modal-box>*{position:relative;z-index:1}
+.modal-mask{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.36);-webkit-backdrop-filter:saturate(150%) blur(2px);backdrop-filter:saturate(150%) blur(2px);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:rgba(248,248,250,.86);-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);border-radius:18px;padding:22px 16px 0;max-width:280px;width:100%;box-shadow:var(--glass-shadow-lg), var(--glass-edge);animation:in .3s var(--ease) both;text-align:center;overflow:hidden;position:relative}
 .modal-box p{font-size:15px;line-height:1.4;letter-spacing:-.012em;padding:4px 8px 22px;color:var(--text);font-weight:500}
 .modal-btns{display:flex;margin:0 -16px;border-top:.5px solid var(--line);gap:0}
 .modal-btns .btn{flex:1;height:46px;border-radius:0;background:transparent;font-size:17px;font-weight:400;color:var(--blue);letter-spacing:-.012em;box-shadow:none}
@@ -427,29 +419,39 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
   .workbench{grid-template-columns:1fr}
   .stagewrap{min-height:420px}
 
-  /* 侧栏作为底部 Sheet：用 bottom 动画避免 iOS Safari transform+overflow 滚动失效 */
+  /* 侧栏作为底部 Sheet：iOS 26 风液态玻璃 + 弹性曲线 */
   .side{
     position:fixed;left:0;right:0;top:auto;z-index:60;
     bottom:-100vh;
-    height:88vh;max-height:88vh;
-    border-radius:24px 24px 0 0;
-    background:#fafafa;
-    transition:bottom .35s var(--ease);
-    box-shadow:0 -10px 40px rgba(0,0,0,.18);
-    padding:8px 14px 32px;
+    height:86vh;max-height:86vh;
+    border-radius:22px 22px 0 0;
+    background:rgba(250,250,252,.86);
+    -webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);
+    transition:bottom .4s cubic-bezier(.32,.72,0,1),transform .3s cubic-bezier(.32,.72,0,1);
+    box-shadow:0 -12px 48px rgba(0,0,0,.14);
+    padding:0 14px 28px;
     overflow-y:scroll;overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y;
   }
   @supports (height:100dvh){
-    .side{bottom:-100dvh;height:88dvh;max-height:88dvh}
+    .side{bottom:-100dvh;height:86dvh;max-height:86dvh}
   }
   body.sheet-open .side{bottom:0}
-  .side .sheet-handle{display:block}
-  .side .sheet-close{display:flex}
-  .side>h2{padding:6px 8px 0}
-  .side>p{padding:0 8px 4px}
+  /* 拖拽中：禁用动画跟手 */
+  .side.dragging{transition:none!important}
+
+  /* Sheet 顶部 sticky 把手区（更大触控目标） */
+  .sheet-handle-zone{position:sticky;top:0;z-index:2;padding:10px 0 8px;background:linear-gradient(to bottom,rgba(250,250,252,.92) 70%,rgba(250,250,252,0));text-align:center;cursor:grab;touch-action:none}
+  .sheet-handle-zone:active{cursor:grabbing}
+  .side .sheet-handle-zone{display:block}
+  .sheet-handle{display:block!important;position:static!important;width:40px;height:5px;border-radius:3px;background:rgba(60,60,67,.32);margin:0 auto;transition:background .15s var(--ease),transform .15s var(--ease)}
+  .sheet-handle-zone:active .sheet-handle{background:rgba(60,60,67,.5);transform:scaleX(1.1)}
+
+  .side .sheet-close{display:flex;top:18px;right:14px;width:28px;height:28px;background:rgba(120,120,128,.16);font-size:11px;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:3}
+  .side>h2{padding:0 8px;margin-top:4px;font-size:24px;letter-spacing:-.028em}
+  .side>p{padding:0 8px 8px}
 
   body.has-files .stagewrap{height:46vh;min-height:280px}
   body.has-files #canvas{max-width:88%;max-height:84%}
@@ -495,7 +497,7 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
       <span class="brand">
         <i class="fa-solid fa-droplet" aria-hidden="true"></i>
         Watermark Studio
-        <span class="version">v3.0.0</span>
+        <span class="version">v3.1.0</span>
       </span>
     </div>
     <div class="navright">
@@ -572,7 +574,7 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
 </div>
 
 <aside class="side" id="sidePanel" aria-label="设置面板">
-  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="sheet-handle-zone" id="sheetHandleZone" aria-hidden="true"><div class="sheet-handle"></div></div>
   <button class="sheet-close" id="sheetCloseBtn" type="button" aria-label="关闭设置面板"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
   <h2>预览与设置</h2>
   <p>调整水印参数，预览区实时更新，确认后导出。</p>
@@ -1244,27 +1246,74 @@ function bindEvents(){
   if(dom.sheetCloseBtn)dom.sheetCloseBtn.addEventListener('click',closeSheet);
 }
 
-let _sheetSavedScrollY=0;
+let _sheetTouchHandler=null;
 function openSheet(){
   if(document.body.classList.contains('sheet-open'))return;
-  _sheetSavedScrollY=window.scrollY||window.pageYOffset||0;
   document.body.classList.add('sheet-open');
-  /* iOS body lock：固定 body 防止背景滚动并干扰 sheet 内部触摸滚动 */
-  document.body.style.position='fixed';
-  document.body.style.top=`-${_sheetSavedScrollY}px`;
-  document.body.style.left='0';
-  document.body.style.right='0';
-  document.body.style.width='100%';
+  /* iOS body lock：用 touchmove 拦截而不是 position:fixed，
+     避免破坏 .side 的 fixed 定位（fixed 后代会以 fixed 祖先为基准） */
+  const sideEl=document.getElementById('sidePanel');
+  _sheetTouchHandler=function(e){
+    if(sideEl&&sideEl.contains(e.target))return;
+    if(e.cancelable)e.preventDefault();
+  };
+  document.addEventListener('touchmove',_sheetTouchHandler,{passive:false});
 }
 function closeSheet(){
   if(!document.body.classList.contains('sheet-open'))return;
   document.body.classList.remove('sheet-open');
-  document.body.style.position='';
-  document.body.style.top='';
-  document.body.style.left='';
-  document.body.style.right='';
-  document.body.style.width='';
-  window.scrollTo(0,_sheetSavedScrollY);
+  if(_sheetTouchHandler){
+    document.removeEventListener('touchmove',_sheetTouchHandler,{passive:false});
+    _sheetTouchHandler=null;
+  }
+}
+
+/* iOS 风拖拽下滑关闭 */
+function setupSheetDrag(){
+  const zone=document.getElementById('sheetHandleZone');
+  const sheet=document.getElementById('sidePanel');
+  if(!zone||!sheet)return;
+  let startY=0,curY=0,dragging=false,startedAt=0;
+  const onStart=e=>{
+    if(!document.body.classList.contains('sheet-open'))return;
+    const t=e.touches?e.touches[0]:e;
+    startY=t.clientY;curY=startY;dragging=true;startedAt=Date.now();
+    sheet.classList.add('dragging');
+  };
+  const onMove=e=>{
+    if(!dragging)return;
+    const t=e.touches?e.touches[0]:e;
+    curY=t.clientY;
+    const dy=Math.max(0,curY-startY);
+    sheet.style.transform=`translateY(${dy}px)`;
+    if(e.cancelable)e.preventDefault();
+  };
+  const onEnd=()=>{
+    if(!dragging)return;
+    dragging=false;
+    const dy=curY-startY;
+    const dt=Date.now()-startedAt;
+    const velocity=dy/Math.max(1,dt);
+    sheet.classList.remove('dragging');
+    if(dy>90||(velocity>0.6&&dy>20)){
+      /* 关闭：transform 顺势滑出，结束后清掉 transform 并 closeSheet（避免跳变） */
+      sheet.style.transform='translateY(100%)';
+      const onDone=()=>{sheet.removeEventListener('transitionend',onDone);sheet.style.transform='';closeSheet()};
+      sheet.addEventListener('transitionend',onDone);
+    }else{
+      /* 回弹：transform 归零 */
+      sheet.style.transform='translateY(0)';
+      const onDone=()=>{sheet.removeEventListener('transitionend',onDone);sheet.style.transform=''};
+      sheet.addEventListener('transitionend',onDone);
+    }
+  };
+  zone.addEventListener('touchstart',onStart,{passive:true});
+  zone.addEventListener('touchmove',onMove,{passive:false});
+  zone.addEventListener('touchend',onEnd);
+  zone.addEventListener('touchcancel',onEnd);
+  zone.addEventListener('mousedown',onStart);
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onEnd);
 }
 
 function initDateInputs(){
@@ -1273,7 +1322,25 @@ function initDateInputs(){
   $('dateFixed').value=today;$('timeFixed').value=nt;$('dateStart').value=today;$('timeStart').value='08:00:00';$('dateEnd').value=today;$('timeEnd').value='18:00:00';
 }
 
-function init(){initDateInputs();renderFields();bindEvents();updateUI()}
+/* 移动端把 .side 移出 .page，避免任何祖先成为 fixed 的包含块 */
+function setupSidePortal(){
+  const sideEl=document.getElementById('sidePanel');
+  const workbench=document.getElementById('workbench');
+  if(!sideEl||!workbench)return;
+  const mq=window.matchMedia('(max-width:980px)');
+  const apply=()=>{
+    if(mq.matches){
+      if(sideEl.parentNode!==document.body)document.body.appendChild(sideEl);
+    }else{
+      if(sideEl.parentNode!==workbench)workbench.appendChild(sideEl);
+    }
+  };
+  apply();
+  if(mq.addEventListener)mq.addEventListener('change',apply);
+  else if(mq.addListener)mq.addListener(apply);
+}
+
+function init(){initDateInputs();renderFields();bindEvents();setupSidePortal();setupSheetDrag();updateUI()}
 init();
 })();
 </script>
