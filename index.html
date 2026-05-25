@@ -376,10 +376,12 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
     max-height:88vh;border-radius:14px 14px 0 0;
     background:var(--bg);
     transform:translateY(100%);transition:transform .35s var(--ease);
+    will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;
+    -webkit-transform:translate3d(0,100%,0);
     box-shadow:0 -8px 32px rgba(0,0,0,.14);padding:8px 16px 120px;
     overflow:auto;-webkit-overflow-scrolling:touch
   }
-  body.sheet-open .side{transform:translateY(0)}
+  body.sheet-open .side{transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0)}
   .side .sheet-handle{display:block}
   .side .sheet-close{display:flex}
   .side>h2{padding:8px 4px 0}
