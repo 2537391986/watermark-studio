@@ -64,6 +64,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 @keyframes heroOut{to{opacity:0;transform:translateY(-20px) scale(.96)}}
 @keyframes sheetIn{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes sheetOut{to{transform:translateY(100%)}}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
 
 /* ===== 导航栏 ===== */
 .nav{
@@ -76,13 +77,12 @@ button:disabled{opacity:.35;cursor:not-allowed}
 
 /* ===== 品牌 logo ===== */
 .brand{font-size:17px;font-weight:600;letter-spacing:-.022em;display:flex;align-items:center;gap:8px;white-space:nowrap;color:var(--text)}
-.brand-icon{
-  width:24px;height:24px;border-radius:7px;
-  background:linear-gradient(135deg,#5e9ef7,var(--blue));
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 1px 3px rgba(0,113,227,.32);
+.brand i{
+  color:var(--blue);
+  font-size:18px;
+  filter:drop-shadow(0 2px 6px rgba(0,113,227,.35));
+  animation:logoFloat 3s ease-in-out infinite;
 }
-.brand-icon i{color:#fff;font-size:12px}
 .version{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px;letter-spacing:.01em}
 .navright{display:flex;gap:8px;align-items:center}
 
@@ -394,8 +394,7 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
 
 @media(max-width:560px){
   .brand{font-size:15px;gap:6px}
-  .brand-icon{width:22px;height:22px;border-radius:6px}
-  .brand-icon i{font-size:11px}
+  .brand i{font-size:16px}
   .version{display:none}
   .navin{padding:0 14px;gap:8px}
   .navright{gap:6px}
@@ -428,7 +427,7 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
   <div class="navin">
     <div style="display:flex;align-items:center;min-width:0;gap:8px">
       <span class="brand">
-        <span class="brand-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span>
+        <i class="fa-solid fa-droplet" aria-hidden="true"></i>
         Watermark Studio
         <span class="version">v2.3.2</span>
       </span>
