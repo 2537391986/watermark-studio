@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Watermark Studio v2.3.2</title>
+<title>Watermark Studio v3.0.0</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -27,10 +27,25 @@
   --green:#34c759;
   --red:#ff3b30;
   --orange:#ff9500;
-  --r:22px;
-  --r-sm:14px;
-  --r-md:18px;
+  --r:26px;
+  --r-sm:12px;
+  --r-md:22px;
+  --r-lg:30px;
   --pill:999px;
+
+  /* ===== Liquid Glass tokens (iOS 26) ===== */
+  --glass-bg:rgba(255,255,255,.62);
+  --glass-bg-strong:rgba(255,255,255,.74);
+  --glass-bg-dark:rgba(28,28,30,.55);
+  --glass-blur:saturate(180%) blur(28px);
+  --glass-blur-strong:saturate(200%) blur(40px);
+  --glass-edge:inset 0 0 0 .5px rgba(255,255,255,.6), inset 0 1px 0 rgba(255,255,255,.85);
+  --glass-edge-dark:inset 0 0 0 .5px rgba(255,255,255,.14), inset 0 1px 0 rgba(255,255,255,.18);
+  --glass-shadow:0 1px 1px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.08), 0 24px 48px -12px rgba(0,0,0,.12);
+  --glass-shadow-lg:0 2px 4px rgba(0,0,0,.06), 0 16px 40px rgba(0,0,0,.12), 0 32px 64px -8px rgba(0,0,0,.18);
+  --specular:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 50%);
+  --specular-dark:linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 50%);
+
   --ease:cubic-bezier(.16,1,.3,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
   --shadow-card:0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
@@ -40,7 +55,18 @@
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg)}
-body{font-family:var(--font);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-feature-settings:"ss01","cv01"}
+body{
+  font-family:var(--font);color:var(--text);overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
+  font-feature-settings:"ss01","cv01";
+  /* 极淡径向渐变让玻璃元素有可折射的色彩层 */
+  background-image:
+    radial-gradient(1200px 600px at 12% -10%, rgba(0,113,227,.10) 0%, transparent 60%),
+    radial-gradient(900px 600px at 100% 110%, rgba(255,149,0,.07) 0%, transparent 55%),
+    radial-gradient(800px 500px at 80% 30%, rgba(52,199,89,.06) 0%, transparent 60%);
+  background-attachment:fixed;
+  background-color:var(--bg);
+}
 button,input,select,textarea{font-family:inherit;-webkit-font-smoothing:inherit}
 button{border:0;background:none;cursor:pointer;color:inherit}
 button:disabled{opacity:.35;cursor:not-allowed}
@@ -66,14 +92,18 @@ button:disabled{opacity:.35;cursor:not-allowed}
 @keyframes sheetOut{to{transform:translateY(100%)}}
 @keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
 
-/* ===== 导航栏 ===== */
+/* ===== 导航栏：iOS 26 悬浮液态玻璃 ===== */
 .nav{
-  position:sticky;top:0;z-index:30;height:48px;
-  background:rgba(255,255,255,.72);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:.5px solid var(--line);
+  position:sticky;top:14px;z-index:30;height:56px;
+  margin:14px auto 0;max-width:1500px;width:calc(100% - 28px);
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:0;border-radius:var(--pill);
+  box-shadow:var(--glass-shadow), var(--glass-edge);
+  position:-webkit-sticky;position:sticky;
 }
-.navin{max-width:1500px;height:100%;margin:auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nav::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none;z-index:0}
+.navin{height:100%;margin:auto;padding:0 14px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
 
 /* ===== 品牌 logo ===== */
 .brand{font-size:17px;font-weight:600;letter-spacing:-.022em;display:flex;align-items:center;gap:8px;white-space:nowrap;color:var(--text)}
@@ -84,28 +114,40 @@ button:disabled{opacity:.35;cursor:not-allowed}
   animation:logoFloat 3s ease-in-out infinite;
 }
 .version{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px;letter-spacing:.01em}
-.navright{display:flex;gap:8px;align-items:center}
+.navright{display:flex;gap:6px;align-items:center}
 
-/* ===== 按钮 ===== */
+/* ===== 按钮：液态玻璃感（顶部 specular + 底部反光） ===== */
 .btn{
   height:36px;padding:0 16px;border-radius:var(--pill);background:var(--fill);color:var(--text);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   font-size:14px;font-weight:600;white-space:nowrap;letter-spacing:-.01em;
+  position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04);
   transition:background .2s var(--ease),transform .15s var(--ease),box-shadow .2s var(--ease);
 }
-.btn.primary{background:var(--blue);color:#fff}
-.btn.danger{background:var(--red);color:#fff}
-.btn.big{height:50px;padding:0 28px;font-size:17px;border-radius:var(--pill)}
+.btn.primary{
+  background:linear-gradient(180deg,#1a8aff 0%,var(--blue) 60%,#0064cc 100%);
+  color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 6px rgba(0,113,227,.32), 0 1px 2px rgba(0,113,227,.18);
+  text-shadow:0 1px 0 rgba(0,0,0,.08);
+}
+.btn.danger{
+  background:linear-gradient(180deg,#ff5e54 0%,var(--red) 60%,#d12f25 100%);
+  color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.36), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 6px rgba(255,59,48,.3), 0 1px 2px rgba(255,59,48,.18);
+}
+.btn.big{height:50px;padding:0 28px;font-size:17px;border-radius:var(--pill);box-shadow:inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.06)}
+.btn.primary.big{box-shadow:inset 0 1px 0 rgba(255,255,255,.42), inset 0 -1.5px 0 rgba(0,0,0,.2), 0 4px 14px rgba(0,113,227,.36), 0 1px 3px rgba(0,113,227,.2)}
 .btn.sm{height:30px;padding:0 12px;font-size:13px}
 .btn.loading i{animation:spin .9s linear infinite}
 
-.badge{min-width:18px;height:18px;border-radius:var(--pill);padding:0 6px;background:rgba(0,0,0,.08);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.primary .badge,.danger .badge{background:rgba(255,255,255,.22);color:#fff}
+.badge{min-width:18px;height:18px;border-radius:var(--pill);padding:0 6px;background:rgba(0,0,0,.12);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.primary .badge,.danger .badge{background:rgba(255,255,255,.26);color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.18)}
 
 @media(hover:hover){
-  .btn:hover:not(:disabled){background:rgba(120,120,128,.18)}
-  .btn.primary:hover:not(:disabled){background:var(--blue-hover)}
-  .btn.danger:hover:not(:disabled){background:#ff453a}
+  .btn:hover:not(:disabled){background:rgba(120,120,128,.2)}
+  .btn.primary:hover:not(:disabled){background:linear-gradient(180deg,#2d96ff 0%,#0078e8 60%,#006bd6 100%)}
+  .btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#ff6b62 0%,#ff453a 60%,#e3372d 100%)}
 }
 .btn:active:not(:disabled){transform:scale(.96);transition-duration:.08s}
 
@@ -142,52 +184,58 @@ body.has-files .hero{display:none;animation:heroOut .4s var(--ease) both}
 
 #canvas{display:none;max-width:86%;max-height:86%;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.08)}
 
-/* 居中悬浮胶囊工具栏（macOS Photos / iOS 风格） */
+/* 居中悬浮液态玻璃工具栏（iOS 26 风） */
 .stageTools{
-  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
-  display:flex;gap:2px;padding:4px;border-radius:999px;
-  background:rgba(28,28,30,.62);
-  -webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);
-  box-shadow:0 8px 24px rgba(0,0,0,.3), inset 0 0 0 .5px rgba(255,255,255,.12);
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  display:flex;gap:2px;padding:5px;border-radius:999px;
+  background:var(--glass-bg-dark);
+  -webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);
+  box-shadow:0 12px 32px rgba(0,0,0,.4), var(--glass-edge-dark);
+  overflow:hidden;
 }
-.ib{width:34px;height:34px;border-radius:50%;background:transparent;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .18s var(--ease),transform .15s var(--ease)}
+.stageTools::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular-dark);pointer-events:none}
+.ib{width:34px;height:34px;border-radius:50%;background:transparent;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .18s var(--ease),transform .15s var(--ease);position:relative;z-index:1}
 .ib#fitBtn{font-size:10px;letter-spacing:.04em;font-weight:700}
-@media(hover:hover){.ib:hover:not(:disabled){background:rgba(255,255,255,.16)}}
+@media(hover:hover){.ib:hover:not(:disabled){background:rgba(255,255,255,.18)}}
 .ib:active:not(:disabled){transform:scale(.9);transition-duration:.08s}
 .ib:disabled{opacity:.4}
 
-.stageCounter{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(28,28,30,.62);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:#fff;font-size:12px;font-weight:600;padding:5px 12px;border-radius:var(--pill);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1);letter-spacing:-.01em}
+.stageCounter{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:var(--glass-bg-dark);-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--pill);box-shadow:var(--glass-edge-dark), 0 4px 14px rgba(0,0,0,.3);letter-spacing:-.01em}
 
-/* ===== 上传区 ===== */
-.upload{margin-top:16px;min-height:130px;background:var(--card);border-radius:var(--r);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;cursor:pointer;transition:transform .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);box-shadow:var(--shadow-card),inset 0 0 0 .5px var(--line2)}
+/* ===== 上传区：液态玻璃 ===== */
+.upload{margin-top:16px;min-height:130px;background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;cursor:pointer;transition:transform .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
+.upload::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
+.upload>div{position:relative;z-index:1}
 .upload h2{font-size:22px;letter-spacing:-.024em;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text)}
 .upload h2 i{color:var(--blue);font-size:20px}
 .upload p{margin-top:6px;color:var(--muted);font-size:14px;letter-spacing:-.005em}
-.upload.drag,body.dragging .upload{transform:scale(.992);background:rgba(0,113,227,.06);box-shadow:0 0 0 2px var(--blue), 0 8px 32px rgba(0,113,227,.18)}
-.drag-hint{display:none;margin-top:14px;padding:7px 16px;border-radius:var(--pill);background:rgba(0,113,227,.14);color:var(--blue);font-size:13px;font-weight:600}
+.upload.drag,body.dragging .upload{transform:scale(.992);background:rgba(0,113,227,.12);box-shadow:0 0 0 2px var(--blue), 0 8px 32px rgba(0,113,227,.22)}
+.drag-hint{display:none;margin-top:14px;padding:7px 16px;border-radius:var(--pill);background:rgba(0,113,227,.16);color:var(--blue);font-size:13px;font-weight:600;box-shadow:inset 0 0 0 .5px rgba(0,113,227,.2)}
 .upload.drag .drag-hint,body.dragging .upload .drag-hint{display:inline-block}
 
-/* ===== 进度条 ===== */
-.progress{margin-top:12px;padding:14px 18px;border-radius:var(--r-md);background:var(--card);box-shadow:var(--shadow-card),inset 0 0 0 .5px var(--line2)}
+/* ===== 进度条：液态玻璃 ===== */
+.progress{margin-top:12px;padding:14px 18px;border-radius:var(--r-md);background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
+.progress::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
+.progress>*{position:relative;z-index:1}
 .prow{display:flex;justify-content:space-between;color:var(--text2);font-size:13px;gap:12px;font-weight:500}
 #ptext{max-width:75%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #ppct{color:var(--blue);font-weight:600}
-.track{height:6px;border-radius:var(--pill);background:var(--fill);margin-top:10px;overflow:hidden}
-.fill{height:100%;width:0;border-radius:var(--pill);background:var(--blue);transition:width .35s var(--ease)}
+.track{height:6px;border-radius:var(--pill);background:rgba(0,0,0,.08);margin-top:10px;overflow:hidden;box-shadow:inset 0 1px 1px rgba(0,0,0,.05)}
+.fill{height:100%;width:0;border-radius:var(--pill);background:linear-gradient(90deg,#1a8aff,var(--blue));box-shadow:0 0 8px rgba(0,113,227,.4);transition:width .35s var(--ease)}
 
 /* ===== 队列 ===== */
 .queueSec{margin-top:14px}
-.qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px}
 .qtitle{font-size:22px;letter-spacing:-.026em;font-weight:600;color:var(--text)}
-.qhead .badge{background:var(--fill);color:var(--text2)}
+.qhead .badge{background:var(--fill);color:var(--text2);box-shadow:inset 0 0 0 .5px var(--line2)}
 .queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
-.qempty{grid-column:1/-1;text-align:center;color:var(--muted);padding:36px 20px;border-radius:var(--r-md);background:var(--card);box-shadow:var(--shadow-card),inset 0 0 0 .5px var(--line2);font-size:14px;letter-spacing:-.005em}
-.qitem{background:var(--card);border-radius:var(--r-md);overflow:hidden;cursor:pointer;animation:qitemIn .36s var(--ease) both;transition:transform .22s var(--ease),box-shadow .22s var(--ease);box-shadow:var(--shadow-card),inset 0 0 0 .5px var(--line2);position:relative}
+.qempty{grid-column:1/-1;text-align:center;color:var(--muted);padding:36px 20px;border-radius:var(--r-md);background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-shadow), var(--glass-edge);font-size:14px;letter-spacing:-.005em}
+.qitem{background:var(--glass-bg-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r-md);overflow:hidden;cursor:pointer;animation:qitemIn .36s var(--ease) both;transition:transform .22s var(--ease),box-shadow .22s var(--ease);box-shadow:var(--glass-shadow), var(--glass-edge);position:relative}
 body.processing .qitem{animation:none!important}
-@media(hover:hover){.qitem:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08), inset 0 0 0 .5px var(--line2)}.qitem:hover .thumb img{transform:scale(1.04)}}
+@media(hover:hover){.qitem:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.12), var(--glass-edge)}.qitem:hover .thumb img{transform:scale(1.04)}}
 
-/* 选中项：苹果蓝光晕，无 scale */
-.qitem.active{box-shadow:0 0 0 3px var(--blue), 0 8px 22px rgba(0,113,227,.18);z-index:2}
+/* 选中项：苹果蓝光晕 */
+.qitem.active{box-shadow:0 0 0 3px var(--blue), 0 12px 28px rgba(0,113,227,.25), var(--glass-edge);z-index:2}
 .qitem.active .thumb::after{content:"";position:absolute;inset:0;background:rgba(0,113,227,.06);pointer-events:none;z-index:2}
 
 .thumb{aspect-ratio:4/3;background:var(--fill);position:relative;overflow:hidden}
@@ -213,16 +261,18 @@ body.processing .qitem{animation:none!important}
 .qrm{width:24px;height:24px;border-radius:50%;background:var(--fill);color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;transition:background .15s var(--ease),color .15s var(--ease)}
 .qrm:hover{background:rgba(255,59,48,.14);color:var(--red)}
 
-/* ===== 侧栏：iOS Settings 风格 ===== */
-.side{background:transparent;border-radius:0;padding:0 2px;max-height:calc(100vh - 72px);overflow:auto;border:0;box-shadow:none}
-@supports (height:100dvh){.side{max-height:calc(100dvh - 72px)}}
+/* ===== 侧栏：iOS 26 液态玻璃卡片 ===== */
+.side{background:transparent;border-radius:0;padding:0 4px;max-height:calc(100vh - 90px);overflow:auto;border:0;box-shadow:none}
+@supports (height:100dvh){.side{max-height:calc(100dvh - 90px)}}
 .side h2{font-size:22px;letter-spacing:-.026em;font-weight:600;padding:0 4px;color:var(--text)}
 .side>p{margin-top:4px;padding:0 4px;color:var(--muted);font-size:13px;line-height:1.4;letter-spacing:-.005em}
 
-/* 各分组卡片：白底 + hairline + 极柔阴影 */
-.box,.panel{margin-top:14px;background:var(--card);border-radius:var(--r-md);padding:4px 16px;box-shadow:var(--shadow-card),inset 0 0 0 .5px var(--line2)}
+/* 各分组卡片：液态玻璃 */
+.box,.panel{margin-top:14px;background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r-md);padding:4px 16px;box-shadow:var(--glass-shadow), var(--glass-edge);position:relative;overflow:hidden}
+.box::before,.panel::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none;z-index:0}
+.box>*,.panel>*{position:relative;z-index:1}
 
-/* 统计：iOS Settings 行（label 左 / 值右 / hairline 分隔） */
+/* 统计：iOS Settings 行 */
 .box{padding:0 16px}
 .stat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:.5px solid var(--line);font-size:15px;letter-spacing:-.012em}
 .stat:last-child{border-bottom:0}
@@ -232,8 +282,8 @@ body.processing .qitem{animation:none!important}
 .sideacts{display:grid;gap:10px;margin-top:14px}
 .sideacts .btn{width:100%;height:46px;font-size:15px;border-radius:var(--r-sm)}
 
-/* 面板（iOS Settings 卡片） */
-.panel{position:relative;padding:14px 16px 16px}
+/* 面板（液态玻璃卡片） */
+.panel{padding:14px 16px 16px}
 .panel h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:4px}
 .panel h3 i{font-size:11px}
 .panel.loc h3 i{color:var(--blue)}
@@ -259,83 +309,88 @@ body.processing .qitem{animation:none!important}
 .hint{margin-top:4px;color:var(--muted);font-size:12px;letter-spacing:-.005em}
 .form{display:grid;gap:14px;margin-top:12px}
 .field{display:grid;gap:6px}
-label{color:var(--text2);font-size:13px;font-weight:500;letter-spacing:-.005em;opacity:.8}
-.input{width:100%;height:38px;border:0;border-radius:10px;background:var(--fill);padding:0 12px;outline:none;font-size:15px;letter-spacing:-.012em;color:var(--text);transition:background .2s var(--ease),box-shadow .2s var(--ease)}
-.input:focus{background:#fff;box-shadow:inset 0 0 0 1px var(--blue),0 0 0 4px rgba(0,113,227,.18)}
-.input:disabled{color:var(--muted);background:var(--fill2);opacity:.7}
+label{color:var(--text2);font-size:13px;font-weight:500;letter-spacing:-.005em;opacity:.85}
+.input{width:100%;height:38px;border:0;border-radius:11px;background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 .5px rgba(60,60,67,.16),inset 0 1px 1px rgba(0,0,0,.03);padding:0 12px;outline:none;font-size:15px;letter-spacing:-.012em;color:var(--text);transition:background .2s var(--ease),box-shadow .2s var(--ease)}
+.input:focus{background:#fff;box-shadow:inset 0 0 0 1.5px var(--blue),0 0 0 4px rgba(0,113,227,.18)}
+.input:disabled{color:var(--muted);background:rgba(255,255,255,.3);opacity:.7}
 .input::placeholder{color:#a1a1a6}
 input[type="date"],input[type="time"]{min-height:38px;color:var(--text)}
 .row{display:flex;gap:8px}
 .row>*{flex:1;min-width:0}
 
-/* iOS 段控 */
-.seg{display:flex;padding:2px;border-radius:9px;background:var(--fill);gap:0;position:relative}
-.seg button{flex:1;height:30px;border-radius:7px;color:var(--text);font-size:13px;font-weight:500;letter-spacing:-.005em;transition:background .25s var(--ease),color .25s var(--ease),box-shadow .25s var(--ease);background:transparent}
-.seg button.on{background:#fff;color:var(--text);box-shadow:0 3px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);font-weight:600}
+/* iOS 26 段控：玻璃槽 + 玻璃 thumb */
+.seg{display:flex;padding:3px;border-radius:11px;background:rgba(120,120,128,.16);box-shadow:inset 0 1px 2px rgba(0,0,0,.05);gap:0;position:relative}
+.seg button{flex:1;height:30px;border-radius:8px;color:var(--text);font-size:13px;font-weight:500;letter-spacing:-.005em;transition:background .25s var(--ease),color .25s var(--ease),box-shadow .25s var(--ease);background:transparent}
+.seg button.on{background:#fff;color:var(--text);box-shadow:0 3px 8px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.7);font-weight:600}
 .seg button:not(.on):hover{color:var(--text)}
 
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:6px 0}
 .swtitle{font-weight:500;font-size:15px;letter-spacing:-.012em;color:var(--text)}
 .swsub{margin-top:2px;color:var(--muted);font-size:12px;letter-spacing:-.005em}
-/* iOS Switch 51×31 */
-.sw{width:51px;height:31px;border-radius:var(--pill);background:rgba(120,120,128,.16);position:relative;flex:0 0 auto;cursor:pointer;transition:background .25s var(--ease)}
-.sw::after{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.06);transition:transform .28s var(--ease)}
-.sw.on{background:var(--green)}
+/* iOS 26 玻璃 Switch 51×31 */
+.sw{width:51px;height:31px;border-radius:var(--pill);background:rgba(120,120,128,.18);position:relative;flex:0 0 auto;cursor:pointer;transition:background .25s var(--ease);box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
+.sw::after{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.8);transition:transform .28s var(--ease),width .2s var(--ease)}
+.sw.on{background:linear-gradient(180deg,#3ed26b,var(--green));box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 0 0 .5px rgba(0,0,0,.04)}
 .sw.on::after{transform:translateX(20px)}
-.sw:focus-visible{box-shadow:0 0 0 4px rgba(0,113,227,.28)}
+.sw:focus-visible{box-shadow:inset 0 1px 2px rgba(0,0,0,.06), 0 0 0 4px rgba(0,113,227,.28)}
 .sw:active::after{width:32px;border-radius:14px}
 .sw.on:active::after{transform:translateX(15px)}
 
-/* 范围滑块（保留之前的细节） */
+/* range slider iOS 26 玻璃 thumb */
 .range{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer;margin:6px 0}
-.range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:var(--fill)}
-.range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.05);margin-top:-10px;cursor:pointer;transition:transform .15s var(--ease)}
+.range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(120,120,128,.16);box-shadow:inset 0 1px 1px rgba(0,0,0,.05)}
+.range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0%,#f4f4f7 100%);box-shadow:0 3px 8px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.9);margin-top:-10px;cursor:pointer;transition:transform .15s var(--ease)}
 .range::-webkit-slider-thumb:active{transform:scale(1.08)}
-.range::-moz-range-track{height:4px;border-radius:999px;background:var(--fill)}
+.range::-moz-range-track{height:4px;border-radius:999px;background:rgba(120,120,128,.16)}
 .range::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:0;box-shadow:0 3px 8px rgba(0,0,0,.18);cursor:pointer}
-.range:focus-visible::-webkit-slider-thumb{box-shadow:0 3px 8px rgba(0,0,0,.18),0 0 0 4px rgba(0,113,227,.28)}
+.range:focus-visible::-webkit-slider-thumb{box-shadow:0 3px 8px rgba(0,0,0,.18),0 0 0 4px rgba(0,113,227,.28),inset 0 1px 0 rgba(255,255,255,.9)}
 
 .fields{display:grid;gap:8px;margin-top:12px}
 .wmrow{display:grid;grid-template-columns:.72fr 1fr 30px;gap:6px;align-items:center}
 .wmrow .input{height:34px;font-size:13px;border-radius:9px}
-.rmline{width:30px;height:30px;border-radius:50%;background:var(--fill);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;transition:background .15s var(--ease),color .15s var(--ease)}
-.rmline:hover{background:rgba(255,59,48,.14);color:var(--red)}
+.rmline{width:30px;height:30px;border-radius:50%;background:var(--fill);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;transition:background .15s var(--ease),color .15s var(--ease);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.rmline:hover{background:rgba(255,59,48,.16);color:var(--red)}
 .contentTools{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .contentTools .btn{height:32px;padding:0 14px;font-size:13px;border-radius:var(--pill)}
 
-/* ===== 移动端底栏 ===== */
-.mobilebar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.78);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--line)}
-.mobilebar-row{display:flex;gap:8px}
-.mobilebar .btn{flex:1;height:50px;font-size:16px;border-radius:14px;font-weight:600}
-.mobilebar #mobileSettings{flex:0 0 50px;width:50px;height:50px;background:var(--fill);border-radius:14px;font-size:18px;color:var(--text2)}
-.mobilebar #mobileSettings:hover{background:rgba(120,120,128,.18)}
-/* 停止状态：iOS 风格红描边 */
-.mobilebar .btn.danger{background:transparent;color:var(--red);box-shadow:inset 0 0 0 1.5px rgba(255,59,48,.5)}
+/* ===== 移动端底栏：iOS 26 悬浮液态玻璃胶囊 ===== */
+.mobilebar{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:40;padding:6px;width:calc(100% - 28px);max-width:520px;background:var(--glass-bg-strong);-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);border:0;border-radius:var(--pill);box-shadow:var(--glass-shadow-lg), var(--glass-edge);overflow:hidden}
+.mobilebar::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
+.mobilebar-row{display:flex;gap:6px;position:relative;z-index:1}
+.mobilebar .btn{flex:1;height:48px;font-size:16px;border-radius:var(--pill);font-weight:600}
+.mobilebar #mobileSettings{flex:0 0 48px;width:48px;height:48px;background:rgba(120,120,128,.18);border-radius:var(--pill);font-size:17px;color:var(--text2);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.mobilebar #mobileSettings:hover{background:rgba(120,120,128,.26)}
+/* 停止状态：iOS 风红描边玻璃 */
+.mobilebar .btn.danger{background:rgba(255,59,48,.12);color:var(--red);box-shadow:inset 0 0 0 1.5px rgba(255,59,48,.55), inset 0 1px 0 rgba(255,255,255,.4);text-shadow:none}
 
 /* ===== 移动端设置 Sheet ===== */
-.sheet-mask{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.32);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.sheet-mask{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.36);opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
 body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
 .sheet-handle{display:none;width:36px;height:5px;border-radius:3px;background:rgba(60,60,67,.3);margin:8px auto 4px}
 .sheet-close{display:none;position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--fill);color:var(--muted);align-items:center;justify-content:center;font-size:13px;font-weight:600}
 .sheet-close:hover{background:rgba(120,120,128,.22);color:var(--text2)}
 
-/* ===== Toast：iOS 通知中心样式 ===== */
-.toast-wrap{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 32px)}
-.toast{padding:12px 14px 12px 12px;border-radius:14px;font-size:14px;font-weight:500;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;box-shadow:0 8px 28px rgba(0,0,0,.16), 0 1px 3px rgba(0,0,0,.06), inset 0 0 0 .5px rgba(255,255,255,.5);animation:toastIn .35s var(--ease) both;pointer-events:auto;-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);background:rgba(255,255,255,.82);color:var(--text)}
+/* ===== Toast：iOS 26 液态玻璃 ===== */
+.toast-wrap{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 32px)}
+.toast{padding:12px 16px 12px 12px;border-radius:18px;font-size:14px;font-weight:500;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;box-shadow:var(--glass-shadow-lg), var(--glass-edge);animation:toastIn .35s var(--ease) both;pointer-events:auto;-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);background:var(--glass-bg-strong);color:var(--text);position:relative;overflow:hidden}
+.toast::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
 .toast.out{animation:toastOut .3s var(--ease) both}
-.toast i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0}
-.toast.success i{background:var(--green)}
-.toast.error i{background:var(--red)}
-.toast.warning i{background:var(--orange)}
-.toast.info i{background:var(--blue)}
+.toast i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.toast span{position:relative;z-index:1}
+.toast.success i{background:linear-gradient(180deg,#3ed26b,var(--green))}
+.toast.error i{background:linear-gradient(180deg,#ff5e54,var(--red))}
+.toast.warning i{background:linear-gradient(180deg,#ffae33,var(--orange))}
+.toast.info i{background:linear-gradient(180deg,#1a8aff,var(--blue))}
 
-/* ===== iOS Alert 风格模态 ===== */
-.modal-mask{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.32);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:rgba(248,248,248,.96);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-radius:14px;padding:20px 16px 0;max-width:280px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:in .3s var(--ease) both;text-align:center;overflow:hidden}
-.modal-box p{font-size:15px;line-height:1.4;letter-spacing:-.012em;padding:4px 8px 20px;color:var(--text);font-weight:500}
+/* ===== iOS 26 Alert（液态玻璃） ===== */
+.modal-mask{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.4);-webkit-backdrop-filter:saturate(150%) blur(2px);backdrop-filter:saturate(150%) blur(2px);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:rgba(248,248,250,.78);-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);border-radius:22px;padding:22px 16px 0;max-width:280px;width:100%;box-shadow:var(--glass-shadow-lg), var(--glass-edge);animation:in .3s var(--ease) both;text-align:center;overflow:hidden;position:relative}
+.modal-box::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--specular);pointer-events:none}
+.modal-box>*{position:relative;z-index:1}
+.modal-box p{font-size:15px;line-height:1.4;letter-spacing:-.012em;padding:4px 8px 22px;color:var(--text);font-weight:500}
 .modal-btns{display:flex;margin:0 -16px;border-top:.5px solid var(--line);gap:0}
-.modal-btns .btn{flex:1;height:44px;border-radius:0;background:transparent;font-size:17px;font-weight:400;color:var(--blue);letter-spacing:-.012em}
-.modal-btns .btn.primary{font-weight:600;background:transparent;color:var(--blue)}
+.modal-btns .btn{flex:1;height:46px;border-radius:0;background:transparent;font-size:17px;font-weight:400;color:var(--blue);letter-spacing:-.012em;box-shadow:none}
+.modal-btns .btn.primary{font-weight:600;background:transparent;color:var(--blue);box-shadow:none}
 .modal-btns .btn:first-child{border-right:.5px solid var(--line)}
 .modal-btns .btn:hover:not(:disabled){background:rgba(0,0,0,.04);transform:none}
 .modal-btns .btn:active:not(:disabled){background:rgba(0,0,0,.08);transform:none}
@@ -343,7 +398,7 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
 /* ===== 响应式 ===== */
 @media(min-width:981px){
   body.has-files{height:100vh;height:100dvh;overflow:hidden}
-  body.has-files .page{height:calc(100vh - 52px);height:calc(100dvh - 52px);padding:14px 18px 18px;overflow:hidden}
+  body.has-files .page{height:calc(100vh - 70px);height:calc(100dvh - 70px);padding:14px 18px 18px;overflow:hidden}
   body.has-files .workbench{height:100%;min-height:0;grid-template-columns:minmax(0,1fr) clamp(340px,24vw,420px)}
   body.has-files .leftPane{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 156px;gap:12px;overflow:hidden}
   body.has-files .stagewrap{min-height:0;height:100%}
@@ -366,26 +421,30 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
 
 @media(max-width:980px){
   .mobilebar{display:block}
-  .page{padding-bottom:108px}
+  .page{padding-bottom:120px}
   .workbench{grid-template-columns:1fr}
   .stagewrap{min-height:420px}
 
-  /* 侧栏作为底部 Sheet 弹出 */
+  /* 侧栏作为底部 Sheet（液态玻璃） */
   .side{
     position:fixed;left:0;right:0;bottom:0;top:auto;z-index:60;
-    max-height:88vh;border-radius:14px 14px 0 0;
-    background:var(--bg);
+    max-height:88vh;border-radius:24px 24px 0 0;
+    background:var(--glass-bg-strong);
+    -webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong);
     transform:translateY(100%);transition:transform .35s var(--ease);
     will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;
     -webkit-transform:translate3d(0,100%,0);
-    box-shadow:0 -8px 32px rgba(0,0,0,.14);padding:8px 16px 120px;
+    box-shadow:var(--glass-shadow-lg), var(--glass-edge);
+    padding:8px 14px 130px;
     overflow:auto;-webkit-overflow-scrolling:touch
   }
   body.sheet-open .side{transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0)}
   .side .sheet-handle{display:block}
   .side .sheet-close{display:flex}
-  .side>h2{padding:8px 4px 0}
-  .side>p{padding:0 4px 4px}
+  .side>h2{padding:8px 8px 0}
+  .side>p{padding:0 8px 4px}
+  /* sheet 内的 panel 改为更轻的玻璃，避免双层玻璃糊重 */
+  body.sheet-open .panel,body.sheet-open .box{background:rgba(255,255,255,.72);-webkit-backdrop-filter:saturate(160%) blur(10px);backdrop-filter:saturate(160%) blur(10px)}
 
   body.has-files .stagewrap{height:46vh;min-height:280px}
   body.has-files #canvas{max-width:88%;max-height:84%}
@@ -398,8 +457,8 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
   .brand{font-size:15px;gap:6px}
   .brand i{font-size:16px}
   .version{display:none}
-  .navin{padding:0 14px;gap:8px}
-  .navright{gap:6px}
+  .navin{padding:0 8px 0 16px;gap:8px}
+  .navright{gap:4px}
   .navright .btn{padding:0 10px}
   .navright .btn.sm span{display:none}
   .navright #exportBtn span:not(.badge){font-size:13px}
@@ -407,13 +466,13 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
   .hero h1{font-size:34px;letter-spacing:-.03em}
   .hero p{font-size:16px;margin-top:14px}
   .heroact{justify-content:flex-start;margin-top:22px}
-  .page{padding:10px 10px 108px}
+  .page{padding:10px 10px 130px}
   .stagewrap{min-height:300px;height:42vh;border-radius:var(--r-md)}
   .wmrow{grid-template-columns:1fr;gap:6px}
   .rmline{width:100%;height:32px;border-radius:9px}
   body.has-files .stagewrap{height:40vh;min-height:260px}
   body.has-files .qitem{flex:0 0 122px}
-  .toast-wrap{top:54px}
+  .toast-wrap{top:90px}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -431,7 +490,7 @@ body.sheet-open .sheet-mask{opacity:1;pointer-events:auto}
       <span class="brand">
         <i class="fa-solid fa-droplet" aria-hidden="true"></i>
         Watermark Studio
-        <span class="version">v2.3.2</span>
+        <span class="version">v3.0.0</span>
       </span>
     </div>
     <div class="navright">
